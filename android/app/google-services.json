@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "637276184592",
+    "project_id": "intricue-3804f",
+    "storage_bucket": "intricue-3804f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:637276184592:android:e869f09c0d9d7ccecf6a95",
+        "android_client_info": {
+          "package_name": "com.example.intricue_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCocApPSSOcXOQ0ZQi5po0mCVNTUkGlVg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
