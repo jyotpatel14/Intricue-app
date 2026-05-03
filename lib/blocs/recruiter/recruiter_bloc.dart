@@ -40,23 +40,22 @@ class RecruiterBloc extends Bloc<RecruiterEvent, RecruiterState> {
 
     /// 🔹 Generate AI content
     on<GenerateContent>((event, emit) async {
-      emit(state.copyWith(isLoading: true, error: null));
+  emit(state.copyWith(isLoading: true, error: null));
 
-      try {
-        /// TODO: Replace with Groq API
-        final generated = "AI generated content for: ${event.prompt}";
+  try {
+    final generated = await repository.extractProfile(event.prompt);
 
-        emit(state.copyWith(
-          isLoading: false,
-          generatedContent: generated,
-        ));
-      } catch (e) {
-        emit(state.copyWith(
-          isLoading: false,
-          error: "Failed to generate content",
-        ));
-      }
-    });
+    emit(state.copyWith(
+      isLoading: false,
+      generatedData: generated,
+    ));
+  } catch (e) {
+    emit(state.copyWith(
+      isLoading: false,
+      error: "Failed to generate content",
+    ));
+  }
+});
 
     /// 🔹 Save recruiter
     on<SaveRecruiter>((event, emit) async {

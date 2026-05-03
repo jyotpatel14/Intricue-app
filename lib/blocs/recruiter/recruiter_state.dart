@@ -1,15 +1,18 @@
+import '../../models/recruiterdata.dart';
+
 class RecruiterState {
   final bool isLoading;
   final Map<String, dynamic>? recruiter;
   final List<Map<String, dynamic>> recruiters;
-  final String? generatedContent;
+
+  final RecruiterData? generatedData; // ✅ NEW
   final String? error;
 
   RecruiterState({
     required this.isLoading,
     this.recruiter,
     this.recruiters = const [],
-    this.generatedContent,
+    this.generatedData,
     this.error,
   });
 
@@ -21,14 +24,14 @@ class RecruiterState {
     bool? isLoading,
     Map<String, dynamic>? recruiter,
     List<Map<String, dynamic>>? recruiters,
-    String? generatedContent,
+    RecruiterData? generatedData,
     String? error,
   }) {
     return RecruiterState(
       isLoading: isLoading ?? this.isLoading,
       recruiter: recruiter ?? this.recruiter,
       recruiters: recruiters ?? this.recruiters,
-      generatedContent: generatedContent ?? this.generatedContent,
+      generatedData: generatedData ?? this.generatedData,
       error: error ?? this.error,
     );
   }
