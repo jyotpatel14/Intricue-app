@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../backend/navigation/route_paths.dart';
 import '../../blocs/authentication/auth_bloc.dart';
 import '../../blocs/authentication/auth_event.dart';
 import '../../blocs/authentication/auth_state.dart';
@@ -34,9 +35,9 @@ class _SplashScreenState extends State<SplashScreen> {
         /// 🚀 Navigate AFTER state is ready
         Future.delayed(Duration(seconds: 2), () {
           if (state.isLoggedIn) {
-            context.go('/home');
+            context.go(RoutePaths.home);
           } else {
-            context.go('/login');
+            context.go(RoutePaths.login);
           }
         });
       },

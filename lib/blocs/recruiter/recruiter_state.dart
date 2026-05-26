@@ -50,6 +50,7 @@ class RecruiterState {
   final RecruiterData? generatedData;
   final String? savedDocId; // ✅ ID returned after save — used to build link
   final String? error;
+  final String searchQuery;
 
   RecruiterState({
     required this.isLoading,
@@ -61,6 +62,7 @@ class RecruiterState {
     this.generatedData,
     this.savedDocId,
     this.error,
+    this.searchQuery = '',
   });
 
   factory RecruiterState.initial() {
@@ -77,6 +79,7 @@ class RecruiterState {
     RecruiterData? generatedData,
     String? savedDocId,
     String? error,
+    String? searchQuery,
   }) {
     return RecruiterState(
       isLoading: isLoading ?? this.isLoading,
@@ -88,6 +91,7 @@ class RecruiterState {
       generatedData: generatedData ?? this.generatedData,
       savedDocId: savedDocId ?? this.savedDocId,
       error: error ?? this.error,
+      searchQuery: searchQuery ?? this.searchQuery,
     );
   }
 }

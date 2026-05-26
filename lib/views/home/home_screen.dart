@@ -1,188 +1,9 @@
-// // import 'package:flutter/material.dart';
-// // import 'package:flutter_bloc/flutter_bloc.dart';
-
-// // import '../../blocs/recruiter/recruiter_bloc.dart';
-// // import '../../blocs/recruiter/recruiter_events.dart';
-// // import '../../blocs/recruiter/recruiter_state.dart';
-
-// // class HomeScreen extends StatefulWidget {
-// //   const HomeScreen({super.key});
-
-// //   @override
-// //   State<HomeScreen> createState() => _HomeScreenState();
-// // }
-
-// // class _HomeScreenState extends State<HomeScreen> {
-// //   final promptCtrl = TextEditingController();
-
-// //   @override
-// //   Widget build(BuildContext context) {
-// //     return Scaffold(
-// //       appBar: AppBar(title: const Text("Intricue Dashboard")),
-
-// //       body: Column(
-// //         children: [
-// //           /// AI input
-// //           TextField(
-// //             controller: promptCtrl,
-// //             decoration: const InputDecoration(
-// //               hintText: "Enter recruiter profile...",
-// //             ),
-// //           ),
-
-// //           ElevatedButton(
-// //             onPressed: () {
-// //               context.read<RecruiterBloc>().add(
-// //                     GenerateContent(promptCtrl.text),
-// //                   );
-// //             },
-// //             child: const Text("Generate"),
-// //           ),
-
-// //           /// Generated content
-// //           BlocBuilder<RecruiterBloc, RecruiterState>(
-// //             builder: (context, state) {
-// //               return Text(state.generatedData?.name ?? "");
-// //             },
-// //           ),
-
-// //           /// Save button
-// //           ElevatedButton(
-// //             onPressed: () {
-// //               context.read<RecruiterBloc>().add(
-// //                     SaveRecruiter({
-// //                       "name": "Generated Name",
-// //                       "company": "Generated Company",
-// //                       "content": "Generated Content",
-// //                     }),
-// //                   );
-// //             },
-// //             child: const Text("Save"),
-// //           ),
-
-// //           /// Navigate to list
-// //           ElevatedButton(
-// //             onPressed: () {
-// //               context.read<RecruiterBloc>().add(FetchAllRecruiters());
-// //             },
-// //             child: const Text("Load Recruiters"),
-// //           ),
-// //         ],
-// //       ),
-// //     );
-// //   }
-// // }
-
-// import 'package:flutter/material.dart';
-// import 'package:flutter_bloc/flutter_bloc.dart';
-
-// import '../../blocs/recruiter/recruiter_bloc.dart';
-// import '../../blocs/recruiter/recruiter_events.dart';
-// import '../../blocs/recruiter/recruiter_state.dart';
-
-// class HomeScreen extends StatefulWidget {
-//   const HomeScreen({super.key});
-
-//   @override
-//   State<HomeScreen> createState() => _HomeScreenState();
-// }
-
-// class _HomeScreenState extends State<HomeScreen> {
-//   final promptCtrl = TextEditingController();
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: const Text("Intricue Dashboard")),
-
-//       body: Padding(
-//         padding: const EdgeInsets.all(16),
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-
-//             /// 🧾 MULTILINE INPUT
-//             TextField(
-//               controller: promptCtrl,
-//               maxLines: 6,
-//               decoration: const InputDecoration(
-//                 hintText: "Paste LinkedIn profile text here...",
-//                 border: OutlineInputBorder(),
-//               ),
-//             ),
-
-//             const SizedBox(height: 12),
-
-//             /// 🚀 FETCH BUTTON (AI CALL)
-//             ElevatedButton(
-//               onPressed: () {
-//                 context.read<RecruiterBloc>().add(
-//                       GenerateContent(promptCtrl.text),
-//                     );
-//               },
-//               child: const Text("Fetch Data"),
-//             ),
-
-//             const SizedBox(height: 16),
-
-//             /// 🔄 LOADING / ERROR / DATA
-//             BlocBuilder<RecruiterBloc, RecruiterState>(
-//               builder: (context, state) {
-
-//                 if (state.isLoading) {
-//                   return const Center(child: CircularProgressIndicator());
-//                 }
-
-//                 if (state.error != null) {
-//                   return Text(
-//                     state.error!,
-//                     style: const TextStyle(color: Colors.red),
-//                   );
-//                 }
-
-//                 final data = state.generatedData;
-
-//                 if (data == null) {
-//                   return const Text("No data generated yet");
-//                 }
-
-//                 /// 📊 DISPLAY EXTRACTED DATA
-//                 return Column(
-//                   crossAxisAlignment: CrossAxisAlignment.start,
-//                   children: [
-//                     Text("Name: ${data.name ?? ""}"),
-//                     Text("Email: ${data.email ?? ""}"),
-//                     Text("Headline: ${data.headline ?? ""}"),
-//                     Text("Company: ${data.recentCompany ?? ""}"),
-//                     Text("Role: ${data.recentRole ?? ""}"),
-//                     Text("Experience: ${data.experienceYears ?? ""}"),
-//                     Text("Skills: ${data.skills?.join(", ") ?? ""}"),
-
-//                     const SizedBox(height: 16),
-
-//                     /// 💾 SAVE BUTTON (REAL DATA)
-//                     ElevatedButton(
-//                       onPressed: () {
-//                         context.read<RecruiterBloc>().add(
-//                               SaveRecruiter(data.toJson()),
-//                             );
-//                       },
-//                       child: const Text("Save to Firestore"),
-//                     ),
-//                   ],
-//                 );
-//               },
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intricue_app/utils/my_print.dart';
 
 import '../../blocs/recruiter/recruiter_bloc.dart';
 import '../../blocs/recruiter/recruiter_events.dart';
@@ -200,6 +21,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _scrollController = ScrollController();
+  final _searchController = TextEditingController();
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -211,7 +34,11 @@ class _HomeScreenState extends State<HomeScreen> {
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
           _scrollController.position.maxScrollExtent - 200) {
-        context.read<RecruiterBloc>().add(FetchMoreRecruiters());
+        final bloc = context.read<RecruiterBloc>();
+
+        if (!bloc.state.isLoading && bloc.state.hasMore) {
+          bloc.add(FetchMoreRecruiters());
+        }
       }
     });
   }
@@ -219,6 +46,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
@@ -231,8 +60,13 @@ class _HomeScreenState extends State<HomeScreen> {
         child: const _AddRecruiterDialog(),
       ),
     ).then((_) {
-      // Refresh list after dialog closes
-      context.read<RecruiterBloc>().add(FetchAllRecruiters());
+      final bloc = context.read<RecruiterBloc>();
+
+      if (bloc.state.searchQuery.isNotEmpty) {
+        bloc.add(SearchRecruiters(bloc.state.searchQuery));
+      } else {
+        bloc.add(FetchAllRecruiters());
+      }
     });
   }
 
@@ -240,13 +74,60 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Intricue"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: "Add Recruiter",
-            onPressed: _openAddDialog,
+        title: SizedBox(
+          height: 50,
+          child: TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: "Search recruiters...",
+              prefixIcon: const Icon(Icons.search, size: 20),
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: EdgeInsets.zero,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+            ),
+
+            onChanged: (value) {
+              MyPrint.printOnConsole("search $value");
+              setState(() {
+                
+              });
+
+              _debounce?.cancel();
+
+              _debounce = Timer(const Duration(milliseconds: 500), () {
+                if (value.trim().isEmpty) {
+                  context.read<RecruiterBloc>().add(FetchAllRecruiters());
+                } else {
+                  context.read<RecruiterBloc>().add(
+                    SearchRecruiters(value.trim()),
+                  );
+                }
+              });
+            },
           ),
+        ),
+        actions: [
+          if (_searchController.text.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.clear),
+              onPressed: () {
+                _searchController.clear();
+
+                context.read<RecruiterBloc>().add(FetchAllRecruiters());
+                setState(() {
+                  
+                });
+              },
+            ),
+          // IconButton(
+          //   icon: const Icon(Icons.add),
+          //   tooltip: "Add Recruiter",
+          //   onPressed: _openAddDialog,
+          // ),
         ],
       ),
       body: BlocBuilder<RecruiterBloc, RecruiterState>(
@@ -257,8 +138,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
           if (state.error != null && state.recruiters.isEmpty) {
             return Center(
-              child: Text(state.error!,
-                  style: const TextStyle(color: Colors.red)),
+              child: Text(
+                state.error!,
+                style: const TextStyle(color: Colors.red),
+              ),
             );
           }
 
@@ -302,9 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       if (company.isNotEmpty)
                         Text(
                           '$role • $company',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
+                          style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: Colors.grey[600]),
                         ),
 
@@ -444,7 +325,8 @@ class _AddRecruiterDialogState extends State<_AddRecruiterDialog> {
       builder: (_) => AlertDialog(
         title: const Text("Discard changes?"),
         content: const Text(
-            "You have unsaved data. If you close now, it will be lost."),
+          "You have unsaved data. If you close now, it will be lost.",
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -452,8 +334,7 @@ class _AddRecruiterDialogState extends State<_AddRecruiterDialog> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child:
-                const Text("Discard", style: TextStyle(color: Colors.red)),
+            child: const Text("Discard", style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -471,8 +352,7 @@ class _AddRecruiterDialogState extends State<_AddRecruiterDialog> {
       },
       builder: (context, state) {
         final savedDocId = state.savedDocId;
-        final link =
-            savedDocId != null ? '$kBaseUrl?id=$savedDocId' : null;
+        final link = savedDocId != null ? '$kBaseUrl?id=$savedDocId' : null;
 
         return PopScope(
           canPop: false,
@@ -485,8 +365,10 @@ class _AddRecruiterDialogState extends State<_AddRecruiterDialog> {
             }
           },
           child: Dialog(
-            insetPadding:
-                const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+            insetPadding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 40,
+            ),
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: SingleChildScrollView(
@@ -501,7 +383,9 @@ class _AddRecruiterDialogState extends State<_AddRecruiterDialog> {
                           child: Text(
                             "Add Recruiter",
                             style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                         IconButton(
@@ -509,9 +393,9 @@ class _AddRecruiterDialogState extends State<_AddRecruiterDialog> {
                           onPressed: () async {
                             final should = await _onWillPop(state);
                             if (should && context.mounted) {
-                              context
-                                  .read<RecruiterBloc>()
-                                  .add(ClearSavedDoc());
+                              context.read<RecruiterBloc>().add(
+                                ClearSavedDoc(),
+                              );
                               Navigator.of(context).pop();
                             }
                           },
@@ -543,15 +427,16 @@ class _AddRecruiterDialogState extends State<_AddRecruiterDialog> {
                               ? null
                               : () {
                                   context.read<RecruiterBloc>().add(
-                                        GenerateContent(_promptCtrl.text),
-                                      );
+                                    GenerateContent(_promptCtrl.text),
+                                  );
                                 },
                           child: state.isLoading && state.generatedData == null
                               ? const SizedBox(
                                   height: 18,
                                   width: 18,
                                   child: CircularProgressIndicator(
-                                      strokeWidth: 2),
+                                    strokeWidth: 2,
+                                  ),
                                 )
                               : const Text("Extract Profile"),
                         ),
@@ -560,8 +445,10 @@ class _AddRecruiterDialogState extends State<_AddRecruiterDialog> {
                       /// Error
                       if (state.error != null) ...[
                         const SizedBox(height: 8),
-                        Text(state.error!,
-                            style: const TextStyle(color: Colors.red)),
+                        Text(
+                          state.error!,
+                          style: const TextStyle(color: Colors.red),
+                        ),
                       ],
 
                       /// Extracted data preview
@@ -571,15 +458,20 @@ class _AddRecruiterDialogState extends State<_AddRecruiterDialog> {
                         const SizedBox(height: 8),
                         _PreviewRow("Name", state.generatedData!.name),
                         _PreviewRow("Email", state.generatedData!.email),
+                        _PreviewRow("Headline", state.generatedData!.headline),
                         _PreviewRow(
-                            "Headline", state.generatedData!.headline),
-                        _PreviewRow(
-                            "Company", state.generatedData!.recentCompany),
+                          "Company",
+                          state.generatedData!.recentCompany,
+                        ),
                         _PreviewRow("Role", state.generatedData!.recentRole),
                         _PreviewRow(
-                            "Experience", state.generatedData!.experienceYears),
-                        _PreviewRow("Skills",
-                            state.generatedData!.skills?.join(", ")),
+                          "Experience",
+                          state.generatedData!.experienceYears,
+                        ),
+                        _PreviewRow(
+                          "Skills",
+                          state.generatedData!.skills?.join(", "),
+                        ),
 
                         const SizedBox(height: 16),
 
@@ -593,17 +485,19 @@ class _AddRecruiterDialogState extends State<_AddRecruiterDialog> {
                                     height: 18,
                                     width: 18,
                                     child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white),
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
                                   )
                                 : const Text("Save to Firestore"),
                             onPressed: state.isSaving
                                 ? null
                                 : () {
                                     context.read<RecruiterBloc>().add(
-                                          SaveRecruiter(
-                                              state.generatedData!.toJson()),
-                                        );
+                                      SaveRecruiter(
+                                        state.generatedData!.toJson(),
+                                      ),
+                                    );
                                   },
                           ),
                         ),
@@ -612,8 +506,11 @@ class _AddRecruiterDialogState extends State<_AddRecruiterDialog> {
 
                     // ── Step 2: Link ready ──
                     if (link != null) ...[
-                      const Icon(Icons.check_circle,
-                          color: Colors.green, size: 40),
+                      const Icon(
+                        Icons.check_circle,
+                        color: Colors.green,
+                        size: 40,
+                      ),
                       const SizedBox(height: 8),
                       const Text(
                         "Recruiter saved! Share this link:",
@@ -628,9 +525,7 @@ class _AddRecruiterDialogState extends State<_AddRecruiterDialog> {
                           icon: const Icon(Icons.close),
                           label: const Text("Close"),
                           onPressed: () {
-                            context
-                                .read<RecruiterBloc>()
-                                .add(ClearSavedDoc());
+                            context.read<RecruiterBloc>().add(ClearSavedDoc());
                             Navigator.of(context).pop();
                           },
                         ),

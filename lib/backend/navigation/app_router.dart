@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intricue_app/views/auth/login_screen.dart';
 import 'package:intricue_app/views/home/home_screen.dart';
-import 'package:intricue_app/views/recruiter/recruiter_screen.dart';
+import 'package:intricue_app/views/recruiter/recruiter_view_screen.dart';
 
 import '../../blocs/authentication/auth_bloc.dart';
 import '../../blocs/recruiter/recruiter_bloc.dart';
@@ -46,7 +46,7 @@ GoRouter createAppRouter(AuthBloc authBloc) {
 
           return BlocProvider(
             create: (_) => RecruiterBloc(repository: recruiterRepository),
-            child: RecruiterScreen(id: id),
+            child: RecruiterViewScreen(id: id),
           );
         },
       ),

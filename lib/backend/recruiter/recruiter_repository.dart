@@ -35,7 +35,7 @@
 //   Future<void> saveRecruiter(Map<String, dynamic> data) async {
 //     print("💾 Saving recruiter...");
 //     print("👤 Current user: ${FirebaseAuth.instance.currentUser?.email ?? 'NOT LOGGED IN'}");
-  
+
 //     print("📊 Data: $data");
 
 //     await _firestore.collection('recruiters').add(data);
@@ -62,9 +62,7 @@
 //      final encoded = jsonEncode({"profileText": text});
 //   print("📤 ENCODED BODY (first 500): ${encoded.substring(0, encoded.length.clamp(0, 500))}");
 
-
 //     try {
-      
 
 //       final res = await http
 //           .post(
@@ -105,6 +103,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intricue_app/utils/my_print.dart';
 
 import '../../models/recruiterdata.dart';
 
@@ -132,13 +131,18 @@ class RecruiterRepository {
   /// 🔹 Save recruiter — returns the new document ID
   Future<String> saveRecruiter(Map<String, dynamic> data) async {
     print("💾 Saving recruiter...");
-    print("👤 Current user: ${FirebaseAuth.instance.currentUser?.email ?? 'NOT LOGGED IN'}");
+    print(
+      "👤 Current user: ${FirebaseAuth.instance.currentUser?.email ?? 'NOT LOGGED IN'}",
+    );
     print("📊 Data: $data");
+
+    final keywords = _generateSearchKeywords(data);
 
     final dataWithMeta = {
       ...data,
       'savedBy': FirebaseAuth.instance.currentUser?.uid,
       'savedAt': FieldValue.serverTimestamp(),
+      'searchKeywords': keywords,
     };
 
     final docRef = await _firestore.collection('recruiters').add(dataWithMeta);
@@ -149,28 +153,36 @@ class RecruiterRepository {
 
   /// 🔹 Fetch paginated recruiters
   Future<({List<Map<String, dynamic>> items, DocumentSnapshot? lastDoc})>
-      getRecruiters({
+  getRecruiters({
     DocumentSnapshot? startAfter,
     int limit = 10,
+    String? search,
   }) async {
-    print("📥 Fetching recruiters (paginated)...");
-
     Query query = _firestore
         .collection('recruiters')
         .orderBy('savedAt', descending: true)
         .limit(limit);
+
+    if (search != null && search.trim().isNotEmpty) {
+      query = _firestore
+          .collection('recruiters')
+          .where('searchKeywords', arrayContains: search.toLowerCase())
+          .orderBy('savedAt', descending: true)
+          .limit(limit);
+    }
 
     if (startAfter != null) {
       query = query.startAfterDocument(startAfter);
     }
 
     final snapshot = await query.get();
-    print("✅ Fetched: ${snapshot.docs.length}");
 
     final items = snapshot.docs
         .map((e) => {'id': e.id, ...e.data() as Map<String, dynamic>})
         .toList();
 
+
+    MyPrint.printOnConsole("ItemCount : ${items.length}");
     return (
       items: items,
       lastDoc: snapshot.docs.isNotEmpty ? snapshot.docs.last : null,
@@ -191,7 +203,9 @@ class RecruiterRepository {
     // Trim before encoding — 28k chars is too large
     final trimmed = text.length > 4000 ? text.substring(0, 4000) : text;
     final encoded = jsonEncode({"profileText": trimmed});
-    print("📤 ENCODED BODY (first 500): ${encoded.substring(0, encoded.length.clamp(0, 500))}");
+    print(
+      "📤 ENCODED BODY (first 500): ${encoded.substring(0, encoded.length.clamp(0, 500))}",
+    );
 
     try {
       final res = await http
@@ -223,5 +237,31 @@ class RecruiterRepository {
       print("🔥 ERROR in extractProfile: $e");
       rethrow;
     }
+  }
+
+  //generate keywords to search
+  List<String> _generateSearchKeywords(Map<String, dynamic> data) {
+    final fields = [
+      data['name'],
+      data['recent_company'],
+      data['headline'],
+      ...(data['skills'] ?? []),
+    ];
+
+    final Set<String> keywords = {};
+
+    for (final field in fields) {
+      if (field == null) continue;
+
+      final words = field.toString().toLowerCase().split(RegExp(r'\s+'));
+
+      for (final word in words) {
+        if (word.trim().isNotEmpty) {
+          keywords.add(word.trim());
+        }
+      }
+    }
+
+    return keywords.toList();
   }
 }

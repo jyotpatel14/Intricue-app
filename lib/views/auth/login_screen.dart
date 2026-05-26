@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intricue_app/utils/my_print.dart';
 
+import '../../backend/navigation/route_paths.dart';
 import '../../blocs/authentication/auth_bloc.dart';
 import '../../blocs/authentication/auth_event.dart';
 import '../../blocs/authentication/auth_state.dart';
@@ -14,8 +16,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final emailCtrl = TextEditingController();
-  final passCtrl = TextEditingController();
+  final emailCtrl = TextEditingController(text: "admin@gmail.com");
+  final passCtrl = TextEditingController(text: "admin123");
 
   @override
   build(BuildContext context) {
@@ -28,10 +30,10 @@ class _LoginScreenState extends State<LoginScreen> {
               SnackBar(content: Text(state.error!)),
             );
           }
-
+          MyPrint.printOnConsole("State: ${state.isLoggedIn}");
           /// ✅ Navigate after login
           if (state.isLoggedIn) {
-            context.go('/home');
+            context.go(RoutePaths.home);
           }
         },
         child: Center(

@@ -1,10 +1,10 @@
+import 'package:go_router/go_router.dart';
+
 import '../../backend/navigation/route_paths.dart';
 import '../../blocs/authentication/auth_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 String? authGuard(AuthBloc authBloc, GoRouterState state) {
   final isLoggedIn = authBloc.state.isLoggedIn;
-  final authState = authBloc.state;
   final location = state.matchedLocation;
 
   /// 🔓 Allow dynamic public routes (VERY IMPORTANT)
@@ -13,17 +13,17 @@ String? authGuard(AuthBloc authBloc, GoRouterState state) {
     return null;
   }
 
-   /// 🔓 Allow splash ALWAYS
-  if (location == '/') return null;
+  /// 🔓 Allow splash ALWAYS
+  if (location == RoutePaths.splash) return null;
 
-  /// 🔐 Not logged in
+  /// 🔐 Not logged in -> send to login
   if (!isLoggedIn) {
-    return '/login';
+    return RoutePaths.login;
   }
 
-  /// Prevent going back to login
-  if (location == '/login') {
-    return '/home';
+  /// Prevent going back to login once authenticated
+  if (location == RoutePaths.login) {
+    return RoutePaths.home;
   }
 
   return null;

@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intricue_app/blocs/authentication/auth_event.dart';
 import 'package:intricue_app/blocs/authentication/auth_state.dart';
+import 'package:snippet_gen/my_print.dart';
 
 import '../../backend/authentication/authentication_repository.dart';
 
@@ -14,25 +15,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<LogoutEvent>(_onLogout);
   }
 
-  Future<void> _onAppStarted(
-    AppStarted event, Emitter<AuthState> emit) async {
-  final user = repository.currentUser;
+  Future<void> _onAppStarted(AppStarted event, Emitter<AuthState> emit) async {
+    final user = repository.currentUser;
 
-  if (user != null) {
-    emit(state.copyWith(
-      isLoggedIn: true,
-      userId: user.uid,
-    ));
-  } else {
-    emit(state.copyWith(
-      isLoggedIn: false,
-      userId: null,
-    ));
+    if (user != null) {
+      emit(state.copyWith(isLoggedIn: true, userId: user.uid));
+    } else {
+      emit(state.copyWith(isLoggedIn: false, userId: null));
+    }
   }
-}
 
-  Future<void> _onLogin(
-      LoginEvent event, Emitter<AuthState> emit) async {
+  Future<void> _onLogin(LoginEvent event, Emitter<AuthState> emit) async {
     emit(state.copyWith(isLoading: true));
 
     try {
@@ -40,22 +33,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         email: event.email,
         password: event.password,
       );
-
-      emit(state.copyWith(
-        isLoading: false,
-        isLoggedIn: true,
-        userId: user?.uid,
-      ));
+      MyPrint.printOnConsole("userId: ${user?.uid}");
+      emit(
+        state.copyWith(isLoading: false, isLoggedIn: true, userId: user?.uid),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      ));
+      emit(state.copyWith(isLoading: false, error: e.toString()));
     }
   }
 
-  Future<void> _onRegister(
-      RegisterEvent event, Emitter<AuthState> emit) async {
+  Future<void> _onRegister(RegisterEvent event, Emitter<AuthState> emit) async {
     emit(state.copyWith(isLoading: true));
 
     try {
@@ -64,21 +51,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         password: event.password,
       );
 
-      emit(state.copyWith(
-        isLoading: false,
-        isLoggedIn: true,
-        userId: user?.uid,
-      ));
+      emit(
+        state.copyWith(isLoading: false, isLoggedIn: true, userId: user?.uid),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      ));
+      emit(state.copyWith(isLoading: false, error: e.toString()));
     }
   }
 
-  Future<void> _onLogout(
-      LogoutEvent event, Emitter<AuthState> emit) async {
+  Future<void> _onLogout(LogoutEvent event, Emitter<AuthState> emit) async {
     await repository.logout();
     emit(AuthState.initial());
   }

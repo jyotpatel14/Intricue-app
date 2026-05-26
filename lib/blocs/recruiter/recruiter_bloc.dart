@@ -96,6 +96,7 @@
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intricue_app/utils/my_print.dart';
 
 import '../../backend/recruiter/recruiter_repository.dart';
 import 'recruiter_events.dart';
@@ -105,7 +106,6 @@ class RecruiterBloc extends Bloc<RecruiterEvent, RecruiterState> {
   final RecruiterRepository repository;
 
   RecruiterBloc({required this.repository}) : super(RecruiterState.initial()) {
-
     /// 🔹 Load single recruiter
     on<LoadRecruiter>((event, emit) async {
       emit(state.copyWith(isLoading: true, error: null));
@@ -131,10 +131,9 @@ class RecruiterBloc extends Bloc<RecruiterEvent, RecruiterState> {
         final generated = await repository.extractProfile(event.prompt);
         emit(state.copyWith(isLoading: false, generatedData: generated));
       } catch (e) {
-        emit(state.copyWith(
-          isLoading: false,
-          error: "Failed to generate content",
-        ));
+        emit(
+          state.copyWith(isLoading: false, error: "Failed to generate content"),
+        );
       }
     });
 
@@ -143,15 +142,11 @@ class RecruiterBloc extends Bloc<RecruiterEvent, RecruiterState> {
       emit(state.copyWith(isSaving: true, error: null));
       try {
         final docId = await repository.saveRecruiter(event.data);
-        emit(state.copyWith(
-          isSaving: false,
-          savedDocId: docId,
-        ));
+        emit(state.copyWith(isSaving: false, savedDocId: docId));
       } catch (e) {
-        emit(state.copyWith(
-          isSaving: false,
-          error: "Failed to save recruiter",
-        ));
+        emit(
+          state.copyWith(isSaving: false, error: "Failed to save recruiter"),
+        );
       }
     });
 
@@ -160,14 +155,18 @@ class RecruiterBloc extends Bloc<RecruiterEvent, RecruiterState> {
       emit(state.copyWith(isLoading: true, error: null));
       try {
         final result = await repository.getRecruiters();
-        emit(state.copyWith(
-          isLoading: false,
-          recruiters: result.items,
-          lastDoc: result.lastDoc,
-          hasMore: result.items.length == 10,
-        ));
+        emit(
+          state.copyWith(
+            isLoading: false,
+            recruiters: result.items,
+            lastDoc: result.lastDoc,
+            hasMore: result.items.length == 10,
+          ),
+        );
       } catch (e) {
-        emit(state.copyWith(isLoading: false, error: "Failed to fetch recruiters"));
+        emit(
+          state.copyWith(isLoading: false, error: "Failed to fetch recruiters"),
+        );
       }
     });
 
@@ -176,13 +175,17 @@ class RecruiterBloc extends Bloc<RecruiterEvent, RecruiterState> {
       if (!state.hasMore || state.isLoading) return;
       emit(state.copyWith(isLoading: true, error: null));
       try {
-        final result = await repository.getRecruiters(startAfter: state.lastDoc);
-        emit(state.copyWith(
-          isLoading: false,
-          recruiters: [...state.recruiters, ...result.items],
-          lastDoc: result.lastDoc,
-          hasMore: result.items.length == 10,
-        ));
+        final result = await repository.getRecruiters(
+          startAfter: state.lastDoc,
+        );
+        emit(
+          state.copyWith(
+            isLoading: false,
+            recruiters: [...state.recruiters, ...result.items],
+            lastDoc: result.lastDoc,
+            hasMore: result.items.length == 10,
+          ),
+        );
       } catch (e) {
         emit(state.copyWith(isLoading: false, error: "Failed to load more"));
       }
@@ -190,12 +193,37 @@ class RecruiterBloc extends Bloc<RecruiterEvent, RecruiterState> {
 
     /// 🔹 Clear saved doc ID (after dialog closes)
     on<ClearSavedDoc>((event, emit) {
-      emit(RecruiterState(
-        isLoading: false,
-        recruiters: state.recruiters,
-        hasMore: state.hasMore,
-        lastDoc: state.lastDoc,
-      ));
+      emit(
+        RecruiterState(
+          isLoading: false,
+          recruiters: state.recruiters,
+          hasMore: state.hasMore,
+          lastDoc: state.lastDoc,
+        ),
+      );
+    });
+
+    /// 🔹 Search recruiters
+    on<SearchRecruiters>((event, emit) async {
+      emit(
+        state.copyWith(isLoading: true, error: null, searchQuery: event.query),
+      );
+
+      try {
+        MyPrint.printOnConsole("Searching");
+        final result = await repository.getRecruiters(search: event.query);
+
+        emit(
+          state.copyWith(
+            isLoading: false,
+            recruiters: result.items,
+            lastDoc: result.lastDoc,
+            hasMore: result.items.length == 10,
+          ),
+        );
+      } catch (e) {
+        emit(state.copyWith(isLoading: false, error: "Search failed"));
+      }
     });
   }
 }

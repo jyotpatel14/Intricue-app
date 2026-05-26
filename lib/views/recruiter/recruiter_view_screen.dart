@@ -5,15 +5,15 @@ import '../../blocs/recruiter/recruiter_bloc.dart';
 import '../../blocs/recruiter/recruiter_events.dart';
 import '../../blocs/recruiter/recruiter_state.dart';
 
-class RecruiterScreen extends StatefulWidget {
+class RecruiterViewScreen extends StatefulWidget {
   final String id;
-  const RecruiterScreen({super.key, required this.id});
+  const RecruiterViewScreen({super.key, required this.id});
 
   @override
-  State<RecruiterScreen> createState() => _RecruiterScreenState();
+  State<RecruiterViewScreen> createState() => _RecruiterViewScreenState();
 }
 
-class _RecruiterScreenState extends State<RecruiterScreen> {
+class _RecruiterViewScreenState extends State<RecruiterViewScreen> {
   @override
   void initState() {
     super.initState();

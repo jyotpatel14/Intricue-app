@@ -52,3 +52,9 @@ class FetchAllRecruiters extends RecruiterEvent {}
 class FetchMoreRecruiters extends RecruiterEvent {}
 
 class ClearSavedDoc extends RecruiterEvent {}
+
+class SearchRecruiters extends RecruiterEvent {
+  final String query;
+
+  SearchRecruiters(this.query);
+}
